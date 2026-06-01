@@ -1,6 +1,6 @@
 import { CONFIG } from '../data/config.js';
 
-const { stageAges, goodCareThreshold } = CONFIG.evolution;
+const { stageAges } = CONFIG.evolution;
 
 export function getStage(ageMinutes) {
   if (ageMinutes >= stageAges.adult) return 'adult';
@@ -9,5 +9,9 @@ export function getStage(ageMinutes) {
 }
 
 export function resolveSpecies(careRating) {
-  return careRating >= goodCareThreshold ? 'shiny' : 'classic';
+  if (careRating >= 85) return 'teddy';
+  if (careRating >= 70) return 'abbie';
+  if (careRating >= 50) return 'choco';
+  if (careRating >= 30) return 'potato';
+  return 'shiromo';
 }

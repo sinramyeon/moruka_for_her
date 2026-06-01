@@ -28,4 +28,17 @@ export const CONFIG = {
     stageAges:         { baby: 0, teen: 30, adult: 120 },
     goodCareThreshold: 60,
   },
+
+  collection: {
+    graduateBonus: 50,
+  },
+
+  gacha: {
+    cost: 100,
+  },
+
+  minigame: {
+    coinPerPoint:     1,
+    happinessOnFinish: 15,
+  },
 };
