@@ -104,6 +104,53 @@ export class GameView extends EventEmitter {
     this.#buildRoom();
   }
 
+  /* ── Intro screen ── */
+  showIntro() {
+    this.#screen = 'intro';
+    const pages = [
+      {
+        title: '뿌이뿌이 모루카!',
+        text: '모루카는 기니피그와\n자동차가 합쳐진\n귀여운 생명체예요.\n양상추를 먹고, 당근의\n유혹에 넘어가며,\n뽈뽈거리며 걸어요!',
+      },
+      {
+        title: '모루카를 키워보세요',
+        text: '밥을 주고, 놀아주고,\n씻기고, 재워주세요.\n잘 돌봐주면 멋진\n모루카로 성장해요!\n\n아기 → 청소년 → 성체',
+      },
+      {
+        title: '5인방을 모아보세요',
+        text: '🥔 포테토 — 먹보\n🤍 시로모 — 신중파\n🍫 민트초코 — 라이벌\n🌹 아비 — 멋쟁이\n🧸 테디 — 스피드스타\n\n케어에 따라 결정돼요!',
+      },
+    ];
+
+    let idx = 0;
+
+    const renderPage = () => {
+      const p = pages[idx];
+      const isLast = idx === pages.length - 1;
+      this.#els.content.innerHTML = `
+        <div class="intro-dialog">
+          <div class="intro-text surface">
+            <div class="intro-title">${p.title}</div>
+            <div class="intro-body">${p.text}</div>
+          </div>
+          <button class="intro-btn surface">${isLast ? '시작하기!' : '다음 →'}</button>
+        </div>
+      `;
+      this.#els.content.querySelector('.intro-btn').addEventListener('click', () => {
+        idx++;
+        if (idx < pages.length) {
+          renderPage();
+        } else {
+          this.#screen = 'room';
+          this.#molcarCreated = false;
+          this.emit('intro-done');
+        }
+      });
+    };
+
+    renderPage();
+  }
+
   /* ── Room screen (default) ── */
   #buildRoom() {
     this.#els.content.innerHTML = `

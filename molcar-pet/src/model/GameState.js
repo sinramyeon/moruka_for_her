@@ -4,7 +4,7 @@ import { Molcar }       from './Molcar.js';
 import { Collection }   from './Collection.js';
 import { Inventory }    from './Inventory.js';
 import { ITEMS }        from '../data/items.js';
-import { rollSpecies }  from '../data/molcars.js';
+import { rollSpecies, getModifier } from '../data/molcars.js';
 import { shouldSpawnWant, createWant, isWantExpired } from './wants.js';
 
 export class GameState extends EventEmitter {
@@ -34,7 +34,14 @@ export class GameState extends EventEmitter {
     const elapsed = (now - this.lastTick) / 60_000;
     if (elapsed <= 0) return;
 
-    this.molcar.stats.decay(CONFIG.decayPerMinute, elapsed);
+    const mod = getModifier(this.molcar.species);
+    const rates = { ...CONFIG.decayPerMinute };
+    if (mod.decayReduction) {
+      for (const [stat, mult] of Object.entries(mod.decayReduction)) {
+        if (rates[stat]) rates[stat] *= mult;
+      }
+    }
+    this.molcar.stats.decay(rates, elapsed);
     this.molcar.ageMinutes += elapsed;
     this.molcar.evolve();
 
@@ -61,22 +68,24 @@ export class GameState extends EventEmitter {
   doAction(action) {
     const { restore, driving } = CONFIG;
     const s = this.molcar.stats;
+    const mod = getModifier(this.molcar.species);
+    const rb = mod.restoreBonus ?? {};
 
     switch (action) {
       case 'feed':
-        s.apply('hunger', restore.feed);
+        s.apply('hunger', restore.feed * (rb.hunger ?? 1));
         break;
       case 'play':
-        s.apply('happiness', restore.play);
+        s.apply('happiness', restore.play * (rb.happiness ?? 1));
         break;
       case 'bath':
-        s.apply('cleanliness', restore.bath);
+        s.apply('cleanliness', restore.bath * (rb.cleanliness ?? 1));
         break;
       case 'sleep':
-        s.apply('energy', restore.sleep);
+        s.apply('energy', restore.sleep * (rb.energy ?? 1));
         break;
       case 'drive':
-        s.apply('happiness',   driving.happinessGain);
+        s.apply('happiness',   driving.happinessGain * (rb.drive_happiness ?? 1));
         s.apply('cleanliness', -driving.cleanlinessCost);
         break;
       default:
@@ -117,7 +126,8 @@ export class GameState extends EventEmitter {
   }
 
   reward(coins = 0, happiness = 0) {
-    this.coins += coins;
+    const mod = getModifier(this.molcar.species);
+    this.coins += Math.round(coins * (mod.minigameCoinBonus ?? 1));
     if (happiness) this.molcar.stats.apply('happiness', happiness);
     this.emit('change', this.snapshot());
   }

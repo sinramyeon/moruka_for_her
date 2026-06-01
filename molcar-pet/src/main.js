@@ -8,4 +8,9 @@ const model = new GameState(saved);
 const view  = new GameView('#app');
 const ctrl  = new GameController(model, view);
 
-ctrl.start();
+if (!saved) {
+  view.showIntro();
+  view.on('intro-done', () => ctrl.start());
+} else {
+  ctrl.start();
+}
